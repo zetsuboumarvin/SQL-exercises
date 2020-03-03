@@ -111,5 +111,131 @@ FROM Printer
 ORDER BY price DESC
 
 ####################################################
+Exercise: 11 (Serge I: 2002-11-02)
+Find out the average speed of PCs.
+
+Solution:
+SELECT AVG(speed) as av_speed
+FROM PC
+
 ####################################################
+Exercise: 12 (Serge I: 2002-11-02)
+Find out the average speed of the laptops priced over $1000.
+
+Solution:
+SELECT AVG(speed) AS av_sp
+FROM (SELECT speed FROM Laptop WHERE price > 1000) av
+
+####################################################
+Exercise: 13 (Serge I: 2002-11-02)
+Find out the average speed of the PCs produced by maker A.
+
+Solution:
+SELECT AVG(speed) as avg_spd
+FROM
+  (SELECT speed
+  FROM PC JOIN Product
+  ON PC.model = Product.model
+  WHERE maker='A') a
+
+####################################################
+Exercise: 15 (Serge I: 2003-02-03)
+Get hard drive capacities that are identical for two or more PCs.
+Result set: hd.
+
+Solution:
+SELECT hd
+FROM PC
+GROUP BY hd
+HAVING COUNT(*) > 1
+
+####################################################
+Exercise: 16 (Serge I: 2003-02-03)
+Get pairs of PC models with identical speeds and the same RAM capacity. Each resulting pair should be displayed only once, i.e. (i, j) but not (j, i).
+Result set: model with the bigger number, model with the smaller number, speed, and RAM.
+
+Solution:
+SELECT DISTINCT pc1.model, pc2.model, pc1.speed, pc1.ram
+FROM PC AS pc1 , PC AS pc2
+WHERE pc1.model > pc2.model AND pc1.speed = pc2.speed AND pc1.ram = pc2.ram
+
+####################################################
+Exercise: 17 (Serge I: 2003-02-03)
+Get the laptop models that have a speed smaller than the speed of any PC.
+Result set: type, model, speed.
+
+Solution:
+SELECT DISTINCT P.type, L.model, L.speed
+FROM Laptop AS L JOIN Product AS P ON L.model = P.model
+WHERE L.speed < ALL(SELECT speed FROM PC)
+
+####################################################
+Exercise: 18 (Serge I: 2003-02-03)
+Find the makers of the cheapest color printers.
+Result set: maker, price.
+
+Solution:
+SELECT DISTINCT maker, price
+FROM Product JOIN Printer ON Printer.model = Product.model
+WHERE color='y' AND price = (SELECT MIN(price) FROM Printer WHERE color='y')
+
+####################################################
+Exercise: 19 (Serge I: 2003-02-13)
+For each maker having models in the Laptop table, find out the average screen size of the laptops he produces.
+Result set: maker, average screen size.
+
+Solution:
+SELECT maker, AVG(screen)
+FROM Product JOIN Laptop ON Product.model = Laptop.model
+GROUP BY maker
+
+####################################################
+Exercise: 20 (Serge I: 2003-02-13)
+Find the makers producing at least three distinct models of PCs.
+Result set: maker, number of PC models.
+
+Solution:
+SELECT maker, COUNT(maker) as count
+FROM Product
+WHERE type='PC'
+GROUP BY maker
+HAVING COUNT(maker) >= 3
+
+####################################################
+####################################################
+####################################################
+####################################################
+####################################################
+####################################################
+####################################################
+####################################################
+####################################################
+####################################################
+####################################################
+Exercise: 65 (Serge I: 2009-08-24)
+Number the unique pairs {maker, type} in the Product table, ordering them as follows:
+- maker name in ascending order;
+- type of product (type) in the order PC, Laptop, Printer.
+If a manufacturer produces more than one type of product, its name should be displayed in the first row only;
+other rows for THIS manufacturer should contain an empty string (').
+
+Solution:
+WITH pcD AS
+(SELECT maker FROM Product WHERE type = 'PC'),
+lapD AS
+(SELECT maker FROM Product WHERE type = 'Laptop')
+
+SELECT row_number() over(ORDER BY maker, t) num,
+	CASE WHEN (type = 'Laptop' OR type = 'Printer') AND maker IN (SELECT * FROM pcD)
+	THEN ''
+	WHEN type = 'Printer' AND maker IN (SELECT * FROM lapD)
+	THEN ''
+	ELSE maker END AS maker, type
+FROM (SELECT maker, type,
+		CASE WHEN type = 'PC' THEN 0
+		WHEN type = 'Laptop' THEN 1
+		ELSE 2 END AS t
+	FROM Product
+	GROUP BY maker, type) p
+
 ####################################################
