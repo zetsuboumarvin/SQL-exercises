@@ -202,9 +202,103 @@ GROUP BY maker
 HAVING COUNT(maker) >= 3
 
 ####################################################
+Exercise: 21 (Serge I: 2003-02-13)
+Find out the maximum PC price for each maker having models in the PC table. Result set: maker, maximum price.
+
+Solution:
+SELECT maker, MAX(price)
+FROM Product JOIN PC ON PC.model = Product.model
+GROUP BY maker
+
 ####################################################
+Exercise: 22 (Serge I: 2003-02-13)
+For each value of PC speed that exceeds 600 MHz, find out the average price of PCs with identical speeds.
+Result set: speed, average price.
+
+Solution:
+SELECT speed, AVG(price) AS av_price
+FROM PC
+WHERE speed > 600
+GROUP BY speed
+
 ####################################################
+Exercise: 23 (Serge I: 2003-02-14)
+Get the makers producing both PCs having a speed of 750 MHz or higher and laptops with a speed of 750 MHz or higher.
+Result set: maker
+
+Solution:
+SELECT maker
+FROM Product JOIN PC ON speed >= 750 AND PC.model = Product.model
+INTERSECT
+SELECT maker
+FROM Product JOIN Laptop ON speed >= 750 AND Laptop.model = Product.model
+
 ####################################################
+Exercise: 24 (Serge I: 2003-02-03)
+List the models of any type having the highest price of all products present in the database.
+
+Solution:
+WITH max_price AS
+    (SELECT model, MAX(price) AS mpr FROM PC GROUP BY model
+    UNION ALL
+    SELECT model, MAX(price) AS mpr FROM Laptop GROUP BY model
+    UNION ALL
+    SELECT model, MAX(price) AS mpr FROM Printer GROUP BY model)
+SELECT TOP 1 WITH TIES model
+FROM max_price
+GROUP BY model
+ORDER BY MAX(mpr) DESC
+
+####################################################
+Exercise: 25 (Serge I: 2003-02-14)
+Find the printer makers also producing PCs with the lowest RAM capacity and the highest processor speed of all PCs having the lowest
+RAM capacity.
+Result set: maker.
+
+Solution:
+SELECT DISTINCT maker
+FROM Product
+WHERE type='Printer' AND
+maker IN (SELECT maker
+                 FROM Product
+                 WHERE model IN (SELECT TOP(1) WITH TIES model
+                                                 FROM (SELECT TOP(1) WITH TIES model, speed
+                                                              FROM PC
+                                                              ORDER BY ram) AS x
+                                                 ORDER BY speed DESC))
+
+####################################################
+Exercise: 26 (Serge I: 2003-02-14)
+Find out the average price of PCs and laptops produced by maker A.
+Result set: one overall average price for all items.
+
+Solution:
+SELECT AVG(price) AS avg_price
+FROM (SELECT price FROM PC JOIN Product ON PC.model = Product.model AND maker = 'A' UNION ALL
+SELECT price FROM Laptop JOIN Product ON Laptop.model = Product.model AND maker = 'A') AS c
+
+####################################################
+Exercise: 27 (Serge I: 2003-02-03)
+Find out the average hard disk drive capacity of PCs produced by makers who also manufacture printers.
+Result set: maker, average HDD capacity.
+
+Solution:
+SELECT maker, AVG(hd) AS avg_hd
+FROM PC JOIN Product ON Product.model = PC.model
+WHERE maker IN (SELECT maker FROM Product WHERE type = 'Printer')
+GROUP BY maker
+
+####################################################
+Exercise: 28 (Serge I: 2012-05-04)
+Using Product table, find out the number of makers who produce only one model.
+
+Solution:
+SELECT COUNT(res.maker) AS qty
+FROM (SELECT maker, COUNT(model) AS q
+FROM Product
+GROUP BY maker
+HAVING COUNT(model) = 1) AS res
+
 ####################################################
 ####################################################
 ####################################################
