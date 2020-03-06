@@ -28,6 +28,110 @@ SELECT Ships.class, name, country
 FROM Ships JOIN Classes ON Ships.class = Classes.class WHERE numGuns >= 10
 
 ####################################################
+Exercise: 31 (Serge I: 2002-10-22)
+For ship classes with a gun caliber of 16 in. or more, display the class and the country.
+
+Solution:
+SELECT class, country
+FROM Classes
+WHERE bore >= 16
+
+####################################################
+Exercise: 32 (Serge I: 2003-02-17)
+One of the characteristics of a ship is one-half the cube of the calibre of its main guns (mw).
+Determine the average ship mw with an accuracy of two decimal places
+for each country having ships in the database.
+
+Solution:
+SELECT country, CAST(AVG(bore * bore * bore / 2) AS NUMERIC(6,2)) AS weight
+FROM
+(SELECT name, class
+FROM Ships
+UNION
+SELECT ship AS class, ship
+FROM Outcomes) p JOIN Classes ON Classes.class = name OR Classes.class = p.class
+GROUP BY country
+
+####################################################
+Exercise: 33 (Serge I: 2002-11-02)
+Get the ships sunk in the North Atlantic battle.
+Result set: ship.
+
+Solution:
+SELECT ship
+FROM Outcomes
+WHERE battle = 'North Atlantic' AND result = 'sunk'
+
+####################################################
+Exercise: 34 (Serge I: 2002-11-04)
+In accordance with the Washington Naval Treaty concluded in the beginning of 1922, it was prohibited
+to build battle ships with a displacement of more than 35 thousand tons.
+Get the ships violating this treaty (only consider ships for which the year of launch is known).
+List the names of the ships.
+
+Solution:
+SELECT DISTINCT name
+FROM Ships, Classes
+WHERE Classes.class = Ships.class AND type = 'bb' AND displacement > 35000 AND launched >= 1922
+
+####################################################
+Exercise: 36 (Serge I: 2003-02-17)
+List the names of lead ships in the database (including the Outcomes table).
+
+Solution:
+SELECT name
+FROM Ships
+WHERE name = class
+
+UNION
+
+SELECT ship
+FROM Outcomes, Classes
+WHERE ship NOT IN (SELECT name FROM Ships) AND ship IN (SELECT class FROM Classes)
+
+####################################################
+Exercise: 37 (Serge I: 2003-02-17)
+Find classes for which only one ship exists in the database (including the Outcomes table).
+
+Solution:
+SELECT ag.class
+FROM (SELECT c.class, COUNT(name) AS n
+FROM Classes c LEFT JOIN Ships s ON c.class = s.class
+GROUP BY c.class
+UNION ALL
+SELECT c.class, COUNT(ship) AS n
+FROM Classes c LEFT JOIN (SELECT DISTINCT ship FROM Outcomes) o ON c.class = o.ship
+WHERE ship NOT IN (SELECT name FROM Ships)
+GROUP BY c.class) AS ag
+GROUP BY ag.class
+HAVING SUM(n) = 1
+
+####################################################
+Exercise: 38 (Serge I: 2003-02-19)
+Find countries that ever had classes of both battleships (‘bb’) and cruisers (‘bc’).
+
+Solution:
+SELECT country
+FROM Classes
+WHERE type = 'bb'
+INTERSECT
+SELECT country
+FROM Classes
+WHERE type = 'bc'
+
+####################################################
+Exercise: 39 (Serge I: 2003-02-14)
+Find the ships that `survived for future battles`; that is, after being damaged in a battle,
+they participated in another one, which occurred later.
+
+Solution:
+SELECT DISTINCT ship
+FROM Outcomes io JOIN Battles ib ON io.battle = ib.name
+WHERE result = 'damaged' AND EXISTS
+(SELECT ship FROM Outcomes o JOIN Battles b ON o.battle = b.name
+WHERE io.ship = o.ship AND b.date > ib.date)
+
+####################################################
 ####################################################
 ####################################################
 ####################################################

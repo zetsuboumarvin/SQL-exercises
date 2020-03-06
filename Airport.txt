@@ -33,8 +33,24 @@ FROM recD LEFT JOIN Pass_in_trip ON
 				trip_no IN (SELECT trip_no FROM Trip WHERE town_from = 'Rostov')
 GROUP BY Dt
 
-
 ####################################################
+Exercise: 67 (Serge I: 2010-03-27)
+Find out the number of routes with the greatest number of flights (trips).
+Notes.
+1) A - B and B - A are to be considered DIFFERENT routes.
+2) Use the Trip table only.
+
+Solution:
+WITH cc AS
+(SELECT town_from, town_to, COUNT(trip_no) AS count
+FROM Trip
+GROUP BY town_from, town_to)
+
+SELECT COUNT(*) as qty
+FROM (SELECT TOP 1 WITH TIES count
+FROM cc
+ORDER BY count DESC) s
+
 ####################################################
 ####################################################
 ####################################################
