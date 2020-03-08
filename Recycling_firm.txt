@@ -133,3 +133,29 @@ GROUP BY point, date)
 SELECT *
 FROM (SELECT * FROM inData UNION ALL SELECT * FROM outData) p
 ORDER BY point, date
+
+####################################################
+Exercise: 69 (Serge I: 2011-01-06)
+Using the Income and Outcome tables, find out the balance for each buy-back center by the end of each day when
+funds were received or payments were made.
+Note that the cash isn’t withdrawn, and the unspent balance/debt is carried forward to the next day.
+Result set: buy-back center ID (point), date in dd/mm/yyyy format, unspent balance/debt by the end of this day.
+
+Solution:
+WITH a AS
+(SELECT point, date, inc, 0 AS out
+FROM Income
+UNION ALL
+SELECT point, date, 0 AS inc, out
+FROM Outcome o),
+everyDayRem AS
+(SELECT point, date, SUM(inc) AS inco, SUM(out) AS outo
+FROM a
+GROUP BY point, date)
+
+SELECT point, CONVERT(varchar(10), date, 103) AS d,
+		(SELECT SUM(inco-outo) rem
+		FROM everyDayRem
+		WHERE point = e.point AND date <= e.date) rem
+FROM everyDayRem e
+
