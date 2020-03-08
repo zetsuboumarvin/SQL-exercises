@@ -358,12 +358,34 @@ FROM Product p JOIN Printer r ON p.model = r.model) p
 GROUP BY maker
 
 ####################################################
-####################################################
-####################################################
-####################################################
-####################################################
-####################################################
-####################################################
+Exercise: 58 (Serge I: 2009-11-13)
+For each product type and maker in the Product table, find out, with a precision of two decimal places, the percentage
+ratio of the number of models of the actual type produced by the actual maker to the total number of models by this maker.
+Result set: maker, product type, the percentage ratio mentioned above.
+
+Solution:
+WITH allModel AS
+(SELECT maker, COUNT(model) AS a
+FROM Product
+GROUP BY maker),
+
+tModel AS
+(SELECT maker, type, COUNT(model) as m_count
+FROM Product
+GROUP BY maker, type),
+
+cj AS
+(SELECT p1.maker, p2.type
+FROM Product p1 CROSS JOIN Product p2
+GROUP BY p2.type, p1.maker)
+
+SELECT cj.maker, cj.type,
+		CASE WHEN m_count IS NULL
+		THEN '.00'
+		ELSE CAST(100.0*m_count/a AS NUMERIC(5,2))
+		END AS prc
+FROM cj LEFT JOIN allModel l ON cj.maker = l.maker LEFT JOIN tModel t ON cj.maker = t.maker AND cj.type = t.type
+
 ####################################################
 Exercise: 65 (Serge I: 2009-08-24)
 Number the unique pairs {maker, type} in the Product table, ordering them as follows:

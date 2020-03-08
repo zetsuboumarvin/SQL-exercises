@@ -18,8 +18,10 @@ Here, the date column doesn’t include the time part, either.
 
 ####################################################
 Exercise: 29 (Serge I: 2003-02-14)
-Under the assumption that receipts of money (inc) and payouts (out) are registered not more than once a day for each collection point
-[i.e. the primary key consists of (point, date)], write a query displaying cash flow data (point, date, income, expense).
+Under the assumption that receipts of money (inc) and payouts (out) are registered not more than once
+a day for each collection point
+[i.e. the primary key consists of (point, date)], write a query displaying cash flow data (point,
+date, income, expense).
 Use Income_o and Outcome_o tables.
 
 Solution:
@@ -31,8 +33,10 @@ FROM Income_o RIGHT JOIN Outcome_o ON Income_o.date = Outcome_o.date AND Income_
 
 ####################################################
 Exercise: 30 (Serge I: 2003-02-14)
-Under the assumption that receipts of money (inc) and payouts (out) can be registered any number of times a day for each collection point
-[i.e. the code column is the primary key], display a table with one corresponding row for each operating date of each collection point.
+Under the assumption that receipts of money (inc) and payouts (out) can be registered any number of times
+a day for each collection point
+[i.e. the code column is the primary key], display a table with one corresponding row for each operating
+date of each collection point.
 Result set: point, date, total payout per day (out), total money intake per day (inc).
 Missing values are considered to be NULL.
 
@@ -46,7 +50,86 @@ FROM Outcome LEFT JOIN Income ON Income.point = Outcome.point AND Income.date = 
 GROUP BY point, date
 
 ####################################################
+Exercise: 59 (Serge I: 2003-02-15)
+Calculate the cash balance of each buy-back center for the database with money transactions being
+recorded not more than once a day.
+Result set: point, balance.
+
+Solution:
+WITH i AS
+(SELECT point, SUM(COALESCE(inc,0)) AS sum
+FROM Income_o
+GROUP BY point),
+
+o AS
+(SELECT point, SUM(COALESCE(out,0)) AS sum
+FROM Outcome_o
+GROUP BY point)
+
+SELECT COALESCE(i.point, o.point) AS point, COALESCE(i.sum,0)-COALESCE(o.sum,0) AS rem
+FROM i LEFT JOIN o ON i.point = o.point
+
 ####################################################
+Exercise: 60 (Serge I: 2003-02-15)
+For the database with money transactions being recorded not more than once a day, calculate the cash balance of
+each buy-back center at the beginning of 4/15/2001.
+Note: exclude centers not having any records before the specified date.
+Result set: point, balance
+
+Solution:
+WITH i AS
+(SELECT point, SUM(COALESCE(inc,0)) AS sum
+FROM Income_o
+WHERE date < '2001-04-15'
+GROUP BY point),
+
+o AS
+(SELECT point, SUM(COALESCE(out,0)) AS sum
+FROM Outcome_o
+WHERE date < '2001-04-15'
+GROUP BY point)
+
+SELECT COALESCE(i.point, o.point) AS point, COALESCE(i.sum,0)-COALESCE(o.sum,0) AS rem
+FROM i LEFT JOIN o ON i.point = o.point
+
 ####################################################
+Exercise: 61 (Serge I: 2003-02-14)
+For the database with money transactions being recorded not more than once a day, calculate the total cash
+balance of all buy-back centers.
+
+Solution:
+SELECT COALESCE(i.sum,0) - COALESCE(o.sum,0) AS rem
+FROM (SELECT COALESCE(SUM(inc),0) AS sum FROM Income_o) i,
+	(SELECT COALESCE(SUM(out),0) AS sum FROM Outcome_o) o
+
 ####################################################
+Exercise: 62 (Serge I: 2003-02-15)
+For the database with money transactions being recorded not more than once a day, calculate the total cash
+balance of all buy-back centers at the beginning of 04/15/2001.
+
+Solution:
+SELECT COALESCE(i.sum,0) - COALESCE(o.sum,0) AS rem
+FROM (SELECT COALESCE(SUM(inc),0) AS sum FROM Income_o WHERE date < '2001-04-15') i,
+	(SELECT COALESCE(SUM(out),0) AS sum FROM Outcome_o WHERE date < '2001-04-15') o
+
 ####################################################
+Exercise: 64 (Serge I: 2010-06-04)
+Using the Income and Outcome tables, determine for each buy-back center the days when it received funds but
+made no payments, and vice versa.
+Result set: point, date, type of operation (inc/out), sum of money per day.
+
+Solution:
+WITH inData AS
+(SELECT point, date, 'inc' AS operation, SUM(inc) AS sum
+FROM Income i
+WHERE date NOT IN (SELECT date FROM Outcome WHERE i.date = date AND i.point = point)
+GROUP BY point, date),
+outData AS
+(SELECT point, date, 'out' AS operation, SUM(out) AS sum
+FROM Outcome o
+WHERE date NOT IN (SELECT date FROM Income WHERE o.date = date AND o.point = point)
+GROUP BY point, date)
+
+SELECT *
+FROM (SELECT * FROM inData UNION ALL SELECT * FROM outData) p
+ORDER BY point, date

@@ -16,6 +16,15 @@ trip number, departure date (day), passenger ID and her seat (place) designation
 defines the seat position in the grid (from left to right, in alphabetical order.
 
 ####################################################
+Exercise: 63 (Serge I: 2003-04-08)
+Find the names of different passengers that ever travelled more than once occupying seats with the same number.
+
+Solution:
+SELECT name
+FROM Passenger
+WHERE ID_psg IN (SELECT ID_psg FROM Pass_in_trip GROUP BY place, ID_psg HAVING COUNT(*) > 1)
+
+####################################################
 Exercise: 66 (Serge I: 2003-04-09)
 For all days between 2003-04-01 and 2003-04-07 find the number of trips from Rostov.
 Result set: date, number of trips.
