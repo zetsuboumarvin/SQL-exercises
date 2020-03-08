@@ -52,6 +52,33 @@ FROM cc
 ORDER BY count DESC) s
 
 ####################################################
+Exercise: 68 (Serge I: 2010-03-27)
+Find out the number of routes with the greatest number of flights (trips).
+Notes.
+1) A - B and B - A are to be considered the SAME route.
+2) Use the Trip table only.
+
+Solution:
+WITH cc AS
+(SELECT town_from, town_to, COUNT(trip_no) AS count
+FROM Trip
+WHERE town_from >= town_to
+GROUP BY town_from, town_to
+UNION ALL
+SELECT town_to, town_from, COUNT(trip_no) AS count
+FROM Trip
+WHERE town_to > town_from
+GROUP BY town_to, town_from),
+scc AS
+(SELECT town_from, town_to, SUM(count) AS scount
+FROM cc
+GROUP BY town_from, town_to)
+
+SELECT COUNT(*) as qty
+FROM (SELECT TOP 1 WITH TIES scount
+FROM scc
+ORDER BY scount DESC) s
+
 ####################################################
 ####################################################
 ####################################################
