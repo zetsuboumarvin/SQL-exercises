@@ -364,6 +364,23 @@ GROUP BY class
 HAVING SUM(sunks) > 0
 
 ####################################################
+Exercise: 70 (Serge I: 2003-02-14)
+Get the battles in which at least three ships from the same country took part.
+
+Solution:
+SELECT DISTINCT battle
+FROM
+(SELECT battle, ship, country
+FROM Outcomes JOIN Classes ON ship = class
+UNION
+SELECT battle, name, country
+FROM Outcomes JOIN
+		(SELECT name, s.class, country
+		FROM Ships s JOIN Classes c ON c.class = s.class
+		WHERE name NOT IN (SELECT class FROM Ships)) ss ON ship = name) p
+GROUP BY battle, country
+HAVING COUNT(ship) >= 3
+
 ####################################################
 ####################################################
 ####################################################
