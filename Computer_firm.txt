@@ -414,3 +414,18 @@ FROM (SELECT maker, type,
 	GROUP BY maker, type) p
 
 ####################################################
+Exercise: 71 (Serge I: 2008-02-23)
+Find the PC makers with all personal computer models produced by them being present in the PC table.
+
+Solution:
+SELECT maker
+FROM Product
+WHERE type = 'PC'
+EXCEPT
+SELECT maker
+FROM Product
+WHERE type = 'PC' AND model NOT IN
+						(SELECT model FROM PC)
+
+####################################################
+####################################################
