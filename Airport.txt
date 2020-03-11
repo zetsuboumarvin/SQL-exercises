@@ -89,6 +89,25 @@ FROM scc
 ORDER BY scount DESC) s
 
 ####################################################
+Exercise: 72 (Serge I: 2003-04-29)
+Among the customers using a single airline, find distinct passengers who have flown most frequently. Result set:
+passenger name, number of trips.
+
+Solution:
+WITH devotedP AS
+(SELECT ID_psg
+FROM Pass_in_trip p JOIN Trip t ON p.trip_no = t.trip_no
+GROUP BY ID_psg
+HAVING COUNT(DISTINCT ID_comp) = 1),
+maxF AS
+(SELECT TOP 1 WITH TIES d.ID_psg, COUNT(trip_no) AS qty
+FROM devotedP d JOIN Pass_in_trip p ON d.ID_psg = p.ID_psg
+GROUP BY d.ID_psg
+ORDER BY COUNT(trip_no) DESC)
+
+SELECT name, qty
+FROM maxF JOIN Passenger p ON maxF.ID_psg = p.ID_psg
+
 ####################################################
 ####################################################
 ####################################################
