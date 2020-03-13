@@ -382,5 +382,19 @@ GROUP BY battle, country
 HAVING COUNT(ship) >= 3
 
 ####################################################
+Exercise: 73 (Serge I: 2009-04-17)
+For each country, determine the battles in which the ships of this country did not participate.
+Result set: country, battle.
+
+Solution:
+SELECT DISTINCT country, name
+FROM Classes c, Battles b
+EXCEPT
+SELECT country, battle
+FROM Classes c JOIN Outcomes ON ship = class
+EXCEPT
+SELECT country, battle
+FROM Outcomes o JOIN Ships s ON ship = name JOIN Classes c ON c.class = s.class
+
 ####################################################
 ####################################################
