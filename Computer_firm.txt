@@ -428,4 +428,34 @@ WHERE type = 'PC' AND model NOT IN
 						(SELECT model FROM PC)
 
 ####################################################
+Exercise: 75 (Serge I: 2020-01-31)
+For makers who have products with a known price in at least one of the Laptop, PC, or Printer tables,
+find the maximum price for each product type.
+Output: maker, maximum price of laptops, maximum price of PCs, maximum price of printers. For missing
+products/prices, use NULL.
+
+Solution:
+WITH makerWOprc AS
+(SELECT DISTINCT maker
+FROM Product p LEFT JOIN PC ON p.model = PC.model
+GROUP BY maker
+HAVING SUM(COALESCE(price,0)) = 0
+INTERSECT
+SELECT DISTINCT maker
+FROM Product p LEFT JOIN Laptop ON p.model = Laptop.model
+GROUP BY maker
+HAVING SUM(COALESCE(price,0)) = 0
+INTERSECT
+SELECT DISTINCT maker
+FROM Product p LEFT JOIN Printer ON p.model = Printer.model
+GROUP BY maker
+HAVING SUM(COALESCE(price,0)) = 0)
+
+SELECT maker, MAX(l.price) AS lmax, MAX(PC.price) AS PCmax, MAX(pr.price) AS pmax
+FROM Product p LEFT JOIN Laptop l ON l.model = p.model
+		LEFT JOIN PC ON p.model = PC.model
+		LEFT JOIN Printer pr ON p.model = pr.model
+WHERE maker NOT IN (SELECT * FROM makerWOprc)
+GROUP BY maker
+
 ####################################################
