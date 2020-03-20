@@ -109,5 +109,33 @@ SELECT name, qty
 FROM maxF JOIN Passenger p ON maxF.ID_psg = p.ID_psg
 
 ####################################################
+Exercise: 76 (Serge I: 2003-08-28)
+Find the overall flight duration for passengers who never occupied the same seat.
+Result set: passenger name, flight duration in minutes.
+
+Solution:
+WITH doublePsg AS
+(SELECT ID_psg, place
+FROM Pass_in_trip
+GROUP BY ID_psg, place
+HAVING COUNT(*) > 1),
+timeFlight AS
+(SELECT t.trip_no, CASE
+		WHEN time_dep >= time_arr
+		THEN time_arr - time_dep + 1440
+		ELSE time_arr - time_dep
+		END flightTime
+FROM Trip t JOIN (SELECT trip_no, DATEPART(hh, time_out)*60 + DATEPART(mi, time_out) time_dep,
+ DATEPART(hh, time_in)*60 + DATEPART(mi, time_in) time_arr
+				FROM Trip) tt ON t.trip_no = tt.trip_no),
+idft AS
+(SELECT ID_psg, SUM(flightTime) as flight_time
+FROM Pass_in_trip p JOIN (SELECT * FROM timeFlight) t ON p.trip_no = t.trip_no
+WHERE p.ID_psg NOT IN (SELECT ID_psg FROM doublePsg)
+GROUP BY ID_psg)
+
+SELECT name, flight_time
+FROM Passenger p JOIN (SELECT * FROM idft) t ON p.ID_psg = t.ID_psg
+
 ####################################################
 ####################################################
