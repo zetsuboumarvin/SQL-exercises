@@ -138,4 +138,15 @@ SELECT name, flight_time
 FROM Passenger p JOIN (SELECT * FROM idft) t ON p.ID_psg = t.ID_psg
 
 ####################################################
+Exercise: 77 (Serge I: 2003-04-09)
+Find the days with the maximum number of flights departed from Rostov. Result set: number of trips, date.
+
+Solution:
+SELECT TOP 1 WITH TIES COUNT(*) as qty, date
+FROM (SELECT DISTINCT(t.trip_no), date, town_from
+FROM Pass_in_trip p JOIN Trip t ON p.trip_no = t.trip_no
+WHERE town_from = 'Rostov') s
+GROUP BY date
+ORDER BY qty DESC
+
 ####################################################
