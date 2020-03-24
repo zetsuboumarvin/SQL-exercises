@@ -412,3 +412,16 @@ WHERE country =
 	ELSE country END
 
 ####################################################
+Exercise: 78 (Serge I: 2005-01-19)
+For each battle, get the first and the last day of the month when the battle occurred.
+Result set: battle name, first day of the month, last day of the month.
+
+Note: output dates in yyyy-mm-dd format.
+
+Solution:
+SELECT name, DATEFROMPARTS(DATEPART(year, date), DATEPART(month, date), 1) AS f_day,
+	DATEADD(day, -1,
+		DATEADD(month, 1, DATEFROMPARTS(DATEPART(year, date), DATEPART(month, date), 1))) AS s_day
+FROM Battles
+
+####################################################
